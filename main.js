@@ -137,7 +137,7 @@ function renderHero() {
         <p class="hero__tagline">${esc(p.tagline)}</p>
         <div class="hero__row">
           <a class="hero__cta" href="${href}">Zobacz projekt</a>
-          <a class="hero__reroll glass" href="${esc(p.url)}" target="_blank" rel="noopener"><span class="material-icons">open_in_new</span> GitHub</a>
+          <a class="hero__ghost glass" href="${esc(p.url)}" target="_blank" rel="noopener"><span class="material-icons">open_in_new</span> GitHub</a>
           <span class="hero__stat"><span class="material-icons" aria-hidden="true">star</span>${fmtStars(p.stars)}${p.language ? ` · ${esc(p.language)}` : ""}</span>
         </div>
       </div>

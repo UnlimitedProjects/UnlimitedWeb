@@ -472,7 +472,7 @@ main {
 .hero__cta:hover {
   transform: translateY(-2px);
 }
-.hero__reroll {
+.hero__ghost {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -485,10 +485,10 @@ main {
   cursor: pointer;
   transition: transform var(--dur) var(--ease);
 }
-.hero__reroll:hover {
+.hero__ghost:hover {
   transform: translateY(-2px);
 }
-.hero__reroll .material-icons {
+.hero__ghost .material-icons {
   font-size: 18px;
 }
 .hero__stat {
