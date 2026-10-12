@@ -1,28 +1,28 @@
 # UnlimitedWeb — hub projektów
 
-Statyczny hub w stylu sklepu z aplikacjami: wyszukiwarka, kategorie, wyróżniony projekt, półka „Polecane" i siatka kafelków. Bez frameworka, bez build-stepu.
+Hub w stylu sklepu z aplikacjami, w stylu **liquid glass** z animacjami. Dane to **prawdziwe repozytoria z GitHub API**.
 
 ## Pliki
 
-- `index.html` — top bar (logo + szukajka), chipsy kategorii, wyróżniony, półka, siatka
-- `styles.css` — tokeny + komponenty (karty, chipsy, baner)
-- `main.js` — render, filtrowanie, motyw
-- `data.js` — kategorie + dane zapasowe (gdy brak backendu)
-- `supabase.js` — pobiera projekty z tabeli `projects`
-- `config.js` — URL + anon key (publiczne)
-- `.github/workflows/` — deploy na GitHub Pages + Releases
+- `index.html` — hub (top bar, taby języków, chipsy, Projekt dnia, półki)
+- `styles.css` — liquid glass + układ Play + animacje (aurora, tilt, wejścia)
+- `main.js` — render, filtrowanie, Projekt dnia, tilt
+- `github.js` — GitHub API (top repo, Projekt dnia ≥100k ★) + cache + fallback
+- `data.js` — języki/kolory, filtry gwiazdek, kuratorowany fallback (≥100k ★)
+- `supabase.js` — projekty z bazy + auth (login) + `addProject`
+- `store.js` — projekty dodane lokalnie (gdy brak bazy)
+- `admin.html` / `admin.js` — panel: logowanie + dodawanie projektu
+- `.github/workflows/` — Pages + Releases
 
-## Dane
+## Projekt GitHub dnia
 
-Kafelki pochodzą z tabeli `projects` (Supabase, publiczny odczyt przez RLS). Jeśli baza jest pusta lub niedostępna, strona pokazuje dane zapasowe z `data.js`.
+`github.js` pobiera repo z `stars:>=100000`, wybiera jedno deterministycznie per dzień (`dayIndex % length`), cache 3 h. Przycisk „Losuj inne" losuje z puli ≥100k.
 
-## lokalnie
+## Admin
 
-```powershell
-npx serve web
-```
+`/admin.html`: logowanie (Supabase Auth) → formularz „Dodaj projekt" → zapis do tabeli `projects`.
+Jeśli Supabase nie jest skonfigurowany, dodane projekty trafiają do `localStorage` i i tak pokazują się w hubie.
 
-## Deploy
+## Dane / migracje
 
-- Push na `main` → Pages publikuje stronę.
-- Tag `v*` → Release ze spakowaną stroną.
+Wymaga tabel `projects`, `waitlist`, `profiles` oraz polityk RLS. Migracje: `../sql/001..005` (m.in. `005_admin.sql` dla zapisu przez zalogowanych).
