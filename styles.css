@@ -1221,3 +1221,62 @@ main {
   }
 }
 
+/* ---------- AI panel ---------- */
+.ai-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.dot {
+  flex: 0 0 auto;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--text-3);
+  box-shadow: 0 0 0 4px rgba(127, 127, 150, 0.15);
+  transition: background var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+.dot[data-state="on"] {
+  background: #00c389;
+  box-shadow: 0 0 0 4px rgba(0, 195, 137, 0.2);
+}
+.dot[data-state="off"] {
+  background: #d93025;
+  box-shadow: 0 0 0 4px rgba(217, 48, 37, 0.18);
+}
+.ai-agents {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 6px 0 16px;
+}
+.agent-chip {
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-2);
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-pill);
+}
+.ai-chat {
+  margin-top: 6px;
+  padding-top: 16px;
+  border-top: 1px solid var(--glass-border);
+}
+.ai-reply {
+  margin: 12px 0 0;
+  padding: 14px;
+  max-height: 320px;
+  overflow: auto;
+  font-family: var(--font);
+  font-size: 13.5px;
+  color: var(--text-2);
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r);
+}
+

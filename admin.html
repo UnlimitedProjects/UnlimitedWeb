@@ -66,6 +66,43 @@
           </div>
         </section>
 
+        <section class="panel glass" id="ai-panel">
+          <div class="ai-head">
+            <div>
+              <h2 class="panel__title">Asystent AI · mini-agenci</h2>
+              <p class="panel__sub" id="ai-status">Sprawdzam most…</p>
+            </div>
+            <span class="dot" id="ai-dot" data-state="unknown" aria-hidden="true"></span>
+          </div>
+
+          <div class="field">
+            <label for="ai-idea">Opisz pomysł — wygeneruję kartę projektu</label>
+            <textarea id="ai-idea" placeholder="np. minimalistyczny klient poczty z trybem offline i tagami"></textarea>
+          </div>
+          <div class="builder__actions">
+            <button class="btn" type="button" id="ai-draft-btn"><span class="material-icons">auto_fix_high</span> Wygeneruj projekt</button>
+            <button class="btn btn--ghost" type="button" id="ai-research-btn"><span class="material-icons">travel_explore</span> Research</button>
+          </div>
+          <p class="note" id="ai-note" role="status" aria-live="polite"></p>
+
+          <div class="ai-agents" id="ai-agents"></div>
+
+          <div class="ai-chat">
+            <div class="row2">
+              <div class="field">
+                <label for="ai-agent">Mini-agent</label>
+                <select id="ai-agent"></select>
+              </div>
+              <div class="field">
+                <label for="ai-msg">Zapytaj agenta</label>
+                <input id="ai-msg" placeholder="np. zaproponuj 3 alternatywne nazwy" />
+              </div>
+            </div>
+            <button class="btn btn--ghost" type="button" id="ai-chat-btn"><span class="material-icons">forum</span> Zapytaj</button>
+            <pre class="ai-reply" id="ai-reply" hidden></pre>
+          </div>
+        </section>
+
         <section class="panel glass" id="builder" hidden>
           <div class="builder">
             <form class="builder__form" id="add-form">

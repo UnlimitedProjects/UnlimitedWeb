@@ -1,5 +1,6 @@
 import { supabaseConfigured, currentUser, signIn, signOut, addProject, getProjects } from "./supabase.js";
 import { localProjects, saveLocalProject, removeLocalProject, toProject } from "./store.js";
+import { aiConfigured, aiHealth, aiAgents, aiDraft, aiResearch, aiChat } from "./ai.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -197,8 +198,72 @@ function openPreview() {
   window.open("./project.html?preview=1", "_blank", "noopener");
 }
 
+// ---------------- AI bridge (mini-agenci) ----------------
+
+function setDot(state) {
+  $("ai-dot").dataset.state = state;
+}
+
+async function initAi() {
+  if (!aiConfigured) {
+    setDot("off");
+    $("ai-status").textContent = "Most AI nieskonfigurowany (config.js).";
+    return;
+  }
+  try {
+    const h = await aiHealth();
+    setDot("on");
+    $("ai-status").textContent = `Most online · research: ${h.researchProvider || "?"}${h.tokenRequired ? " · token wymagany" : ""}`;
+  } catch {
+    setDot("off");
+    $("ai-status").textContent = "Most offline — uruchom: npm --prefix coder run serve";
+  }
+  try {
+    const { agents } = await aiAgents();
+    const list = agents || [];
+    $("ai-agent").innerHTML = list.map((a) => `<option value="${esc(a.name)}">${esc(a.name)}</option>`).join("");
+    $("ai-agents").innerHTML = list
+      .map((a) => `<span class="agent-chip" title="${esc(a.description)}">${esc(a.name)}</span>`)
+      .join("");
+  } catch {
+    /* ignore */
+  }
+}
+
+function aiApplyDraft(idea) {
+  const btn = $("ai-draft-btn");
+  return async () => {
+    if (!idea()) {
+      setNote($("ai-note"), "error", "Najpierw opisz pomysł.");
+      return;
+    }
+    btn.disabled = true;
+    setNote($("ai-note"), "", "Mini-agenci pracują…");
+    try {
+      const { draft, note } = await aiDraft(idea());
+      if (!draft) {
+        setNote($("ai-note"), "error", "Nie udało się wygenerować draftu.");
+        return;
+      }
+      $("name").value = draft.name || "";
+      $("tagline").value = draft.tagline || "";
+      $("description").value = draft.description || "";
+      if (["app", "game", "tool", "site"].includes(draft.category)) $("category").value = draft.category;
+      if (/^#[0-9a-f]{6}$/i.test(draft.accent || "")) $("accent").value = draft.accent;
+      openBuilder(true);
+      renderPreview();
+      setNote($("ai-note"), "ok", `Gotowe (${draft.source || "ai"}). Popraw i opublikuj.${note ? " · " + note : ""}`);
+    } catch (err) {
+      setNote($("ai-note"), "error", "Błąd AI: " + err.message);
+    } finally {
+      btn.disabled = false;
+    }
+  };
+}
+
 async function init() {
   initTheme();
+  initAi();
 
   $("start-btn").addEventListener("click", () => openBuilder(true));
   $("cancel-btn").addEventListener("click", () => openBuilder(false));
@@ -208,6 +273,42 @@ async function init() {
   $("category").addEventListener("change", renderPreview);
   $("accent").addEventListener("input", renderPreview);
   $("featured").addEventListener("change", renderPreview);
+
+  $("ai-draft-btn").addEventListener("click", aiApplyDraft(() => $("ai-idea").value.trim()));
+
+  $("ai-research-btn").addEventListener("click", async () => {
+    const idea = $("ai-idea").value.trim();
+    if (!idea) {
+      setNote($("ai-note"), "error", "Opisz temat do researchu.");
+      return;
+    }
+    const btn = $("ai-research-btn");
+    btn.disabled = true;
+    setNote($("ai-note"), "", "Research w toku…");
+    try {
+      const r = await aiResearch([idea]);
+      const first = (r.results && r.results[0] && r.results[0].results) || [];
+      setNote($("ai-note"), "ok", `${r.count} zapytań · ${first.length} wyników (${r.provider}). Np.: ${(first[0] && first[0].title) || "brak"}`);
+    } catch (err) {
+      setNote($("ai-note"), "error", "Błąd researchu: " + err.message);
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  $("ai-chat-btn").addEventListener("click", async () => {
+    const msg = $("ai-msg").value.trim();
+    if (!msg) return;
+    const pre = $("ai-reply");
+    pre.hidden = false;
+    pre.textContent = "…";
+    try {
+      const r = await aiChat(msg, $("ai-agent").value || "worker");
+      pre.textContent = r.reply || r.error || "(brak odpowiedzi)";
+    } catch (err) {
+      pre.textContent = "Błąd: " + err.message;
+    }
+  });
 
   if (!supabaseConfigured) {
     setNote($("who"), "error", "Tryb lokalny (localStorage) — brak konfiguracji Supabase.");
