@@ -1,29 +1,28 @@
-# UnlimitedWeb — strona
+# UnlimitedWeb — hub projektów
 
-Statyczny frontend (HTML/CSS/JS) na **Supabase**. Bez frameworka, bez build-stepu.
+Statyczny hub w stylu sklepu z aplikacjami: wyszukiwarka, kategorie, wyróżniony projekt, półka „Polecane" i siatka kafelków. Bez frameworka, bez build-stepu.
 
 ## Pliki
 
-- `index.html` — struktura strony
-- `styles.css` — tokeny + komponenty (Terminal Broadsheet)
-- `main.js` — interakcje (motyw, liczniki, formularz)
-- `supabase.js` — klient Supabase (anon key)
-- `config.js` — URL + anon key (publiczne). Wzorzec: `config.example.js`
+- `index.html` — top bar (logo + szukajka), chipsy kategorii, wyróżniony, półka, siatka
+- `styles.css` — tokeny + komponenty (karty, chipsy, baner)
+- `main.js` — render, filtrowanie, motyw
+- `data.js` — kategorie + dane zapasowe (gdy brak backendu)
+- `supabase.js` — pobiera projekty z tabeli `projects`
+- `config.js` — URL + anon key (publiczne)
 - `.github/workflows/` — deploy na GitHub Pages + Releases
 
-## Uruchomienie lokalne
+## Dane
+
+Kafelki pochodzą z tabeli `projects` (Supabase, publiczny odczyt przez RLS). Jeśli baza jest pusta lub niedostępna, strona pokazuje dane zapasowe z `data.js`.
+
+## lokalnie
 
 ```powershell
 npx serve web
-# albo
-python -m http.server 8080 --directory web
 ```
 
 ## Deploy
 
-- **Pages**: push na `main` → workflow `pages.yml` publikuje stronę.
-- **Releases**: tag `v*` (np. `git tag v1.0.0 && git push origin v1.0.0`) → workflow `release.yml` tworzy Release ze spakowaną stroną.
-
-## Backend
-
-Tabele i RLS definiują migracje w `sql/` (u studia). Front używa wyłącznie `SUPABASE_ANON_KEY` i polityk RLS — nigdy `service_role`.
+- Push na `main` → Pages publikuje stronę.
+- Tag `v*` → Release ze spakowaną stroną.

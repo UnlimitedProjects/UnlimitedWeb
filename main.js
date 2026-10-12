@@ -1,145 +1,164 @@
-import { supabaseConfigured, ping, joinWaitlist } from "./supabase.js";
+import { CATEGORIES, FALLBACK_PROJECTS } from "./data.js";
+import { supabaseConfigured, getProjects } from "./supabase.js";
 
-const root = document.documentElement;
-const THEMES = ["auto", "light", "dark"];
+const state = {
+  projects: [],
+  category: "all",
+  query: "",
+};
 
-function currentTheme() {
-  const stored = localStorage.getItem("uw-theme");
-  return THEMES.includes(stored) ? stored : "auto";
+const el = {
+  chips: document.getElementById("chips"),
+  featured: document.getElementById("featured"),
+  shelf: document.getElementById("shelf"),
+  grid: document.getElementById("grid"),
+  count: document.getElementById("result-count"),
+  empty: document.getElementById("empty"),
+  search: document.getElementById("search"),
+};
+
+const esc = (s) =>
+  String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+const catLabel = (id) => (CATEGORIES.find((c) => c.id === id) || { label: id }).label;
+
+function initials(name) {
+  const clean = String(name || "?").trim();
+  const parts = clean.split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return clean.slice(0, 2).toUpperCase();
 }
 
-function applyTheme(mode) {
-  if (mode === "auto") {
-    root.removeAttribute("data-theme");
-  } else {
-    root.setAttribute("data-theme", mode);
+const fmtInstalls = (n) => {
+  const v = Number(n) || 0;
+  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(v % 1_000_000 === 0 ? 0 : 1)} mln`;
+  if (v >= 1_000) return `${(v / 1_000).toFixed(v % 1_000 === 0 ? 0 : 1)} tys.`;
+  return String(v);
+};
+
+const STAR =
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 2.9 6.26 6.86.6-5.2 4.5 1.55 6.72L12 16.9 5.89 20.08 7.44 13.36 2.24 8.86l6.86-.6L12 2Z"/></svg>';
+
+function cardHTML(p) {
+  return `
+    <article class="card" role="listitem" style="--a:${esc(p.accent || "#0fae74")}">
+      <div class="card__top">
+        <span class="tile" aria-hidden="true">${esc(initials(p.name))}</span>
+        <div class="card__id">
+          <h3 class="card__name">${esc(p.name)}</h3>
+          <p class="card__cat">${esc(catLabel(p.category))}</p>
+        </div>
+      </div>
+      <p class="card__tagline">${esc(p.tagline || p.description || "")}</p>
+      <div class="card__foot">
+        <span class="rating">${STAR}${(Number(p.rating) || 0).toFixed(1)}</span>
+        <a class="open" href="${esc(p.url || "#")}" target="_blank" rel="noopener">Otwórz</a>
+      </div>
+    </article>`;
+}
+
+function renderChips() {
+  el.chips.innerHTML = CATEGORIES.map(
+    (c) =>
+      `<button class="chip" type="button" data-cat="${esc(c.id)}" aria-pressed="${c.id === state.category}">${esc(
+        c.label
+      )}</button>`
+  ).join("");
+  el.chips.querySelectorAll(".chip").forEach((btn) =>
+    btn.addEventListener("click", () => {
+      state.category = btn.dataset.cat;
+      renderChips();
+      render();
+    })
+  );
+}
+
+function filtered() {
+  const q = state.query.trim().toLowerCase();
+  return state.projects.filter((p) => {
+    if (state.category !== "all" && p.category !== state.category) return false;
+    if (!q) return true;
+    return [p.name, p.tagline, p.description, catLabel(p.category)].join(" ").toLowerCase().includes(q);
+  });
+}
+
+function renderFeatured(list) {
+  const p = list.find((x) => x.featured) || list[0];
+  if (!p) {
+    el.featured.innerHTML = "";
+    return;
   }
-  localStorage.setItem("uw-theme", mode);
-  const btn = document.getElementById("theme-toggle");
-  const state = document.getElementById("theme-state");
-  if (state) state.textContent = mode;
-  if (btn) btn.setAttribute("aria-pressed", String(mode === "dark"));
+  el.featured.innerHTML = `
+    <div class="banner" style="--a:${esc(p.accent || "#0fae74")}">
+      <div>
+        <p class="banner__eyebrow">Wyróżniony projekt</p>
+        <h2 class="banner__name">${esc(p.name)}</h2>
+        <p class="banner__tagline">${esc(p.tagline || p.description || "")}</p>
+        <div class="banner__meta">
+          <span class="rating" style="color:inherit">${STAR}${(Number(p.rating) || 0).toFixed(1)}</span>
+          <span>${fmtInstalls(p.installs)} pobrań</span>
+        </div>
+      </div>
+      <a class="banner__cta" href="${esc(p.url || "#")}" target="_blank" rel="noopener">Otwórz</a>
+    </div>`;
+}
+
+function render() {
+  const list = filtered();
+
+  el.shelf.innerHTML = state.projects
+    .slice()
+    .sort((a, b) => (Number(b.rating) || 0) - (Number(a.rating) || 0))
+    .slice(0, 8)
+    .map(cardHTML)
+    .join("");
+
+  el.grid.innerHTML = list.map(cardHTML).join("");
+  el.empty.hidden = list.length !== 0;
+  el.count.textContent = `${list.length} ${list.length === 1 ? "projekt" : "projektów"}`;
+}
+
+function renderSkeleton() {
+  el.shelf.innerHTML = Array.from({ length: 4 }, () => '<div class="skeleton"></div>').join("");
+  el.grid.innerHTML = Array.from({ length: 8 }, () => '<div class="skeleton"></div>').join("");
 }
 
 function initTheme() {
-  applyTheme(currentTheme());
+  const root = document.documentElement;
   const btn = document.getElementById("theme-toggle");
-  if (!btn) return;
+  const order = ["light", "dark"];
+  const stored = localStorage.getItem("uw-theme");
+  const initial =
+    stored || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  root.setAttribute("data-theme", initial);
   btn.addEventListener("click", () => {
-    const next = THEMES[(THEMES.indexOf(currentTheme()) + 1) % THEMES.length];
-    applyTheme(next);
+    const next = order[(order.indexOf(root.getAttribute("data-theme")) + 1) % order.length];
+    root.setAttribute("data-theme", next);
+    localStorage.setItem("uw-theme", next);
   });
 }
 
-function initCounters() {
-  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const nodes = [...document.querySelectorAll("[data-count]")];
-  if (!nodes.length) return;
-
-  const render = (el, value) => {
-    el.textContent = String(value);
-  };
-
-  const animate = (el, target) => {
-    if (reduce) return render(el, target);
-    const dur = 900;
-    const start = performance.now();
-    const step = (now) => {
-      const t = Math.min(1, (now - start) / dur);
-      const eased = 1 - Math.pow(1 - t, 3);
-      render(el, Math.round(target * eased));
-      if (t < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  };
-
-  const io = new IntersectionObserver(
-    (entries, obs) => {
-      for (const e of entries) {
-        if (e.isIntersecting) {
-          animate(e.target, Number(e.target.dataset.count) || 0);
-          obs.unobserve(e.target);
-        }
-      }
-    },
-    { threshold: 0.4 }
-  );
-  nodes.forEach((n) => {
-    render(n, 0);
-    io.observe(n);
-  });
-}
-
-function initWaitlist() {
-  const form = document.getElementById("waitlist");
-  const input = document.getElementById("email");
-  const button = document.getElementById("waitlist-submit");
-  const status = document.getElementById("waitlist-status");
-  if (!form || !input || !button || !status) return;
-
-  const setState = (kind, message) => {
-    status.dataset.kind = kind || "";
-    status.textContent = message || "";
-    input.setAttribute("aria-invalid", kind === "error" ? "true" : "false");
-  };
-
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const email = input.value.trim();
-
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setState("error", "Podaj poprawny adres e-mail.");
-      input.focus();
-      return;
-    }
-
-    if (!supabaseConfigured) {
-      setState("error", "Backend nie jest jeszcze podłączony (web/config.js).");
-      return;
-    }
-
-    button.setAttribute("aria-busy", "true");
-    button.disabled = true;
-    setState("", "Zapisuję…");
-
+async function load() {
+  renderSkeleton();
+  let projects = [];
+  if (supabaseConfigured) {
     try {
-      await joinWaitlist(email);
-      form.reset();
-      setState("ok", "Jesteś na liście. Odezwiemy się przy starcie.");
+      projects = await getProjects();
     } catch (err) {
-      if (err.code === "23505") {
-        setState("ok", "Ten adres już jest na liście.");
-      } else if (err.code === "42501" || /row-level security|permission/i.test(err.message)) {
-        setState("error", "Backend odrzucił zapis (RLS). Sprawdź migracje w sql/.");
-      } else {
-        setState("error", `Nie udało się zapisać: ${err.message}`);
-      }
-    } finally {
-      button.setAttribute("aria-busy", "false");
-      button.disabled = false;
+      console.warn("Supabase:", err.message);
     }
-  });
+  }
+  if (!projects.length) projects = FALLBACK_PROJECTS;
+  state.projects = projects;
+  renderFeatured(projects);
+  renderChips();
+  render();
 }
 
-async function initBackendStatus() {
-  const el = document.getElementById("sb-state");
-  if (!el) return;
-  if (!supabaseConfigured) {
-    el.dataset.state = "error";
-    el.textContent = "supabase: brak konfiguracji";
-    return;
-  }
-  try {
-    const res = await ping();
-    el.dataset.state = res.ok ? "ok" : "error";
-    el.textContent = res.ok ? "supabase: online" : "supabase: błąd";
-  } catch {
-    el.dataset.state = "error";
-    el.textContent = "supabase: offline";
-  }
-}
+el.search.addEventListener("input", (e) => {
+  state.query = e.target.value;
+  render();
+});
 
 initTheme();
-initCounters();
-initWaitlist();
-initBackendStatus();
+load();

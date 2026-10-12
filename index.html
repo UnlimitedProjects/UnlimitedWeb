@@ -4,144 +4,83 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light dark" />
-    <title>UnlimitedWeb — statyczna strona, nielimitowany backend</title>
-    <meta
-      name="description"
-      content="Statyczny frontend (HTML/CSS/JS) na Supabase. Plus autonomiczne studio: swarm workerów, research i generowanie projektów."
-    />
+    <title>UnlimitedWeb — hub projektów</title>
+    <meta name="description" content="Przeglądaj i odkrywaj projekty. Aplikacje, gry, narzędzia i strony w jednym miejscu." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="./styles.css" />
     <script type="module" src="./main.js"></script>
   </head>
   <body>
-    <a class="skip" href="#main">Pomiń do treści</a>
+    <a class="skip" href="#catalog">Pomiń do katalogu</a>
 
-    <header class="masthead">
-      <a class="wordmark" href="#top">
-        <span class="wordmark__mark">UL</span>
-        <span class="wordmark__text">Unlimited<b>Web</b></span>
-      </a>
-      <nav class="masthead__nav" aria-label="Nawigacja główna">
-        <a href="#stack">Stack</a>
-        <a href="#studio">Studio</a>
-        <a href="#join">Dołącz</a>
+    <header class="topbar">
+      <div class="topbar__inner">
+        <a class="brand" href="#" aria-label="UnlimitedWeb — strona główna">
+          <span class="brand__mark" aria-hidden="true">U</span>
+          <span class="brand__name">Unlimited<b>Web</b></span>
+        </a>
+
+        <form class="search" role="search" onsubmit="return false">
+          <svg class="search__icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M10 4a6 6 0 1 0 3.9 10.56l4.27 4.27 1.41-1.41-4.27-4.27A6 6 0 0 0 10 4Zm0 2a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z"
+            />
+          </svg>
+          <input
+            class="search__input"
+            id="search"
+            type="search"
+            placeholder="Szukaj projektów"
+            aria-label="Szukaj projektów"
+            autocomplete="off"
+          />
+        </form>
+
+        <button class="iconbtn" id="theme-toggle" type="button" aria-label="Zmień motyw">
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="iconbtn__sun">
+            <path
+              d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10Zm0-5h0a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0V3a1 1 0 0 1 1-1Zm0 16a1 1 0 0 1 1 1v2a1 1 0 0 1-2 0v-2a1 1 0 0 1 1-1ZM4 11h2a1 1 0 0 1 0 2H4a1 1 0 0 1 0-2Zm14 0h2a1 1 0 0 1 0 2h-2a1 1 0 0 1 0-2ZM6.3 4.9l1.4 1.4a1 1 0 0 1-1.4 1.4L4.9 6.3A1 1 0 0 1 6.3 4.9Zm10 10 1.4 1.4a1 1 0 0 1-1.4 1.4l-1.4-1.4a1 1 0 0 1 1.4-1.4Zm1.4-10a1 1 0 0 1 0 1.4l-1.4 1.4A1 1 0 0 1 15 6.3l1.4-1.4a1 1 0 0 1 1.3 0Zm-10 10a1 1 0 0 1 0 1.4L6.3 17.7a1 1 0 0 1-1.4-1.4l1.4-1.4a1 1 0 0 1 1.4 0Z"
+            />
+          </svg>
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="iconbtn__moon">
+            <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" />
+          </svg>
+        </button>
+      </div>
+
+      <nav class="chips" aria-label="Kategorie">
+        <div class="chips__track" id="chips"></div>
       </nav>
-      <button class="toggle" id="theme-toggle" type="button" aria-pressed="false">
-        <span class="toggle__label">Motyw</span>
-        <span class="toggle__state" id="theme-state">auto</span>
-      </button>
     </header>
 
-    <main id="main">
-      <section class="hero" id="top">
-        <p class="kicker">HTML · CSS · JS <span aria-hidden="true">/</span> Supabase</p>
-        <h1 class="hero__title">
-          Twoja strona waży<br />
-          <em>kilobajty</em>, backend robi resztę.
-        </h1>
-        <p class="hero__lede">
-          Zero frameworka, zero build-stepu. Czysty frontend, Postgres, Auth i Storage z
-          Supabase — a nad całością czuwa autonomiczne studio: rój workerów, który robi
-          research i składa projekt bez Twojej ręki.
-        </p>
-        <div class="hero__meter" role="group" aria-label="Licznik pracy studia">
-          <div class="meter">
-            <span class="meter__value" data-count="42">0</span>
-            <span class="meter__label">skille w bibliotece</span>
-          </div>
-          <div class="meter">
-            <span class="meter__value" data-count="30">0</span>
-            <span class="meter__label">workerów w swarmie</span>
-          </div>
-          <div class="meter">
-            <span class="meter__value" data-count="400">0</span>
-            <span class="meter__label">researchy / przebieg</span>
-          </div>
+    <main id="catalog">
+      <section class="featured" id="featured" aria-label="Wyróżniony projekt"></section>
+
+      <section class="row" aria-labelledby="reco-title">
+        <div class="row__head">
+          <h2 class="row__title" id="reco-title">Polecane dla Ciebie</h2>
         </div>
+        <div class="shelf" id="shelf" role="list"></div>
       </section>
 
-      <section class="rule-section" id="stack">
-        <h2 class="rule-section__title">
-          <span class="rule-section__no">01</span> Jak to stoi
-        </h2>
-        <dl class="spec">
-          <div class="spec__row">
-            <dt>Frontend</dt>
-            <dd>Statyczne HTML/CSS/JS. ES-moduły, zero bundlera, zero lock-inu.</dd>
-          </div>
-          <div class="spec__row">
-            <dt>Backend</dt>
-            <dd>Supabase — Postgres, Auth, Storage, Realtime. Klient po anon key.</dd>
-          </div>
-          <div class="spec__row">
-            <dt>Bezpieczeństwo</dt>
-            <dd>RLS na każdej tabeli. Front nigdy nie widzi service_role.</dd>
-          </div>
-          <div class="spec__row">
-            <dt>Studio</dt>
-            <dd>MCP „coder": research, scaffolding, swarm workerów, migracje SQL.</dd>
-          </div>
-        </dl>
-      </section>
-
-      <section class="rule-section rule-section--studio" id="studio">
-        <h2 class="rule-section__title">
-          <span class="rule-section__no">02</span> Autonomiczne studio
-        </h2>
-        <p class="prose">
-          Rój liczy 30+ workerów mówiących po wspólnym busie. Researcher zbiera materiał,
-          designer zamienia go w tokeny, engineer składa komponenty, reviewer wystawia
-          ocenę — wszystko równolegle, wszystko zapisane na wspólnej czarnej tablicy.
-        </p>
-        <ol class="steps">
-          <li><span>Research</span> — sto zapytań w jednym przebiegu</li>
-          <li><span>Plan</span> — cel i podział zadań na blackboardzie</li>
-          <li><span>Swarm</span> — równoległa praca rójki</li>
-          <li><span>Review</span> — ocena z dowodami, potem scalenie</li>
-        </ol>
-      </section>
-
-      <section class="rule-section join" id="join">
-        <h2 class="rule-section__title">
-          <span class="rule-section__no">03</span> Wejdź na listę
-        </h2>
-        <p class="prose">
-          Zapisz się, gdy wystartujemy. Adres trafia prosto do Supabase (tabela
-          <code>waitlist</code>), przez anon key i RLS.
-        </p>
-        <form class="waitlist" id="waitlist" novalidate>
-          <label class="waitlist__label" for="email">Adres e-mail</label>
-          <div class="waitlist__row">
-            <input
-              class="waitlist__input"
-              id="email"
-              name="email"
-              type="email"
-              inputmode="email"
-              autocomplete="email"
-              placeholder="ty@domena.pl"
-              required
-              aria-describedby="waitlist-status"
-            />
-            <button class="btn" type="submit" id="waitlist-submit">
-              <span class="btn__text">Zapisz</span>
-            </button>
-          </div>
-          <p class="waitlist__status" id="waitlist-status" role="status" aria-live="polite"></p>
-        </form>
+      <section class="row" aria-labelledby="all-title">
+        <div class="row__head">
+          <h2 class="row__title" id="all-title">Wszystkie projekty</h2>
+          <span class="row__count" id="result-count" aria-live="polite"></span>
+        </div>
+        <div class="grid" id="grid" role="list"></div>
+        <p class="empty" id="empty" hidden>Nic nie znaleziono. Zmień frazę lub kategorię.</p>
       </section>
     </main>
 
-    <footer class="footer">
-      <p>UnlimitedWeb — statyczny front, nielimitowany backend.</p>
-      <p class="footer__meta">
-        <span id="sb-state" data-state="unknown">supabase: sprawdzam…</span>
-      </p>
+    <footer class="foot">
+      <span class="brand__mark brand__mark--sm" aria-hidden="true">U</span>
+      <span>UnlimitedWeb — hub projektów</span>
     </footer>
   </body>
 </html>
