@@ -6,6 +6,7 @@ import { getReviews, addReview, averageRating, ratingBuckets } from "./reviews.j
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
 const slug = params.get("id") || params.get("project") || "";
+const isPreview = params.get("preview") === "1";
 
 const esc = (s) =>
   String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -159,6 +160,24 @@ async function refresh() {
 async function init() {
   initTheme();
   initStars();
+
+  if (isPreview) {
+    let project = null;
+    try {
+      const raw = sessionStorage.getItem("uw:preview");
+      if (raw) project = toProject(JSON.parse(raw));
+    } catch {
+      /* ignore */
+    }
+    document.title = "Podgląd — UnlimitedWeb";
+    renderHead(project);
+    const form = document.querySelector(".review-form");
+    if (form) form.remove();
+    $("rating-summary").innerHTML = "";
+    $("reviews").innerHTML = `<li class="reviews__empty">Podgląd — oceny pojawią się po opublikowaniu.</li>`;
+    return;
+  }
+
   const project = await findProject(slug);
   renderHead(project);
 

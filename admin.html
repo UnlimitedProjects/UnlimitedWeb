@@ -22,15 +22,11 @@
             <path d="M6 3.5 30.5 20 6 36.5Z" fill="#01875f" />
             <path d="M30.5 20 36.6 16.6c1.1.6 1.1 2.2 0 2.8Z" fill="#ffce00" />
           </svg>
-          <span class="logo__name">UnlimitedWeb · Admin</span>
+          <span class="logo__name">UnlimitedWeb · Studio</span>
         </a>
         <div class="appbar__actions">
-          <a class="gicon" href="./index.html" aria-label="Hub" title="Hub">
-            <span class="material-icons" aria-hidden="true">apps</span>
-          </a>
-          <button class="gicon" id="theme-toggle" type="button" aria-label="Zmień motyw">
-            <span class="material-icons" aria-hidden="true">brightness_6</span>
-          </button>
+          <a class="gicon" href="./index.html" aria-label="Hub" title="Hub"><span class="material-icons" aria-hidden="true">apps</span></a>
+          <button class="gicon" id="theme-toggle" type="button" aria-label="Zmień motyw"><span class="material-icons" aria-hidden="true">brightness_6</span></button>
         </div>
       </div>
     </header>
@@ -38,7 +34,7 @@
     <div class="wrap">
       <section class="panel glass" id="auth-panel">
         <h1 class="panel__title">Zaloguj się</h1>
-        <p class="panel__sub">Panel admina — dodawanie projektów do huba.</p>
+        <p class="panel__sub">Studio — tworzenie projektów w hubie.</p>
         <form id="login-form">
           <div class="field">
             <label for="email">E-mail</label>
@@ -53,73 +49,96 @@
         <p class="note" id="auth-note" role="status" aria-live="polite"></p>
       </section>
 
-      <section class="panel glass" id="add-panel" hidden>
-        <div style="display: flex; justify-content: space-between; align-items: start; gap: 12px">
-          <div>
-            <h1 class="panel__title">Dodaj projekt</h1>
-            <p class="panel__sub" id="who"></p>
+      <div id="workspace" hidden>
+        <section class="panel glass" id="start-panel">
+          <div class="startcard">
+            <div class="startcard__copy">
+              <p class="hero__eyebrow"><span class="material-icons">auto_awesome</span> Studio</p>
+              <h1 class="panel__title">Start making a project</h1>
+              <p class="panel__sub">Wypełnij dane, oglądaj podgląd na żywo i opublikuj w hubie.</p>
+              <div class="buildbar">
+                <button class="btn btn--lg" id="start-btn"><span class="material-icons">rocket_launch</span> Start making a project</button>
+                <button class="btn btn--ghost" type="button" id="logout-btn">Wyloguj</button>
+              </div>
+              <p class="note" id="who"></p>
+            </div>
+            <div class="startcard__art" aria-hidden="true"><span></span><span></span><span></span></div>
           </div>
-          <button class="btn btn--ghost" type="button" id="logout-btn">Wyloguj</button>
-        </div>
+        </section>
 
-        <form id="add-form">
-          <div class="field">
-            <label for="name">Nazwa *</label>
-            <input id="name" name="name" required placeholder="np. SuperNotes" />
-          </div>
-          <div class="row2">
-            <div class="field">
-              <label for="category">Kategoria</label>
-              <select id="category" name="category">
-                <option value="app">Aplikacja</option>
-                <option value="game">Gra</option>
-                <option value="tool">Narzędzie</option>
-                <option value="site">Strona</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="accent">Kolor akcentu</label>
-              <input id="accent" name="accent" type="color" value="#7c5cff" />
-            </div>
-          </div>
-          <div class="field">
-            <label for="tagline">Krótki opis</label>
-            <input id="tagline" name="tagline" placeholder="Jedno zdanie" />
-          </div>
-          <div class="field">
-            <label for="description">Opis</label>
-            <textarea id="description" name="description" placeholder="Dłuższy opis (opcjonalnie)"></textarea>
-          </div>
-          <div class="field">
-            <label for="url">Link *</label>
-            <input id="url" name="url" type="url" required placeholder="https://..." />
-          </div>
-          <div class="row2">
-            <div class="field">
-              <label for="installs">Pobrania / gwiazdki</label>
-              <input id="installs" name="installs" type="number" min="0" value="0" />
-            </div>
-            <div class="field">
-              <label for="rating">Ocena (0-5)</label>
-              <input id="rating" name="rating" type="number" min="0" max="5" step="0.1" value="5" />
-            </div>
-          </div>
-          <div class="field" style="flex-direction: row; align-items: center; gap: 10px">
-            <input id="featured" name="featured" type="checkbox" style="width: auto" />
-            <label for="featured" style="margin: 0">Wyróżniony</label>
-          </div>
-          <button class="btn" type="submit" id="add-btn">
-            <span class="material-icons">add</span> Dodaj projekt
-          </button>
-          <p class="note" id="add-note" role="status" aria-live="polite"></p>
-        </form>
-      </section>
+        <section class="panel glass" id="builder" hidden>
+          <div class="builder">
+            <form class="builder__form" id="add-form">
+              <h2 class="panel__title">Nowy projekt</h2>
+              <div class="field">
+                <label for="name">Nazwa *</label>
+                <input id="name" name="name" required placeholder="np. SuperNotes" />
+              </div>
+              <div class="row2">
+                <div class="field">
+                  <label for="category">Kategoria</label>
+                  <select id="category" name="category">
+                    <option value="app">Aplikacja</option>
+                    <option value="game">Gra</option>
+                    <option value="tool">Narzędzie</option>
+                    <option value="site">Strona</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="accent">Kolor akcentu</label>
+                  <input id="accent" name="accent" type="color" value="#7c5cff" />
+                </div>
+              </div>
+              <div class="field">
+                <label for="tagline">Krótki opis</label>
+                <input id="tagline" name="tagline" maxlength="120" placeholder="Jedno zdanie" />
+              </div>
+              <div class="field">
+                <label for="description">Opis</label>
+                <textarea id="description" name="description" placeholder="Dłuższy opis (opcjonalnie)"></textarea>
+              </div>
+              <div class="field">
+                <label for="url">Link *</label>
+                <input id="url" name="url" type="url" required placeholder="https://..." />
+              </div>
+              <div class="row2">
+                <div class="field">
+                  <label for="installs">Pobrania / gwiazdki</label>
+                  <input id="installs" name="installs" type="number" min="0" value="0" />
+                </div>
+                <div class="field">
+                  <label for="rating">Ocena (0-5)</label>
+                  <input id="rating" name="rating" type="number" min="0" max="5" step="0.1" value="5" />
+                </div>
+              </div>
+              <label class="check">
+                <input id="featured" name="featured" type="checkbox" />
+                <span>Wyróżniony</span>
+              </label>
 
-      <section class="panel glass" id="list-panel">
-        <h2 class="panel__title">Twoje projekty</h2>
-        <p class="panel__sub" id="list-sub"></p>
-        <ul class="list" id="list"></ul>
-      </section>
+              <div class="builder__actions">
+                <button class="btn" type="submit" id="add-btn"><span class="material-icons">publish</span> Opublikuj</button>
+                <button class="btn btn--ghost" type="button" id="preview-btn"><span class="material-icons">visibility</span> Podgląd strony</button>
+                <button class="btn btn--ghost" type="button" id="cancel-btn">Anuluj</button>
+              </div>
+              <p class="note" id="add-note" role="status" aria-live="polite"></p>
+            </form>
+
+            <aside class="builder__preview">
+              <p class="preview__label">Podgląd na żywo</p>
+              <div class="preview__tile" id="pv-tile"></div>
+              <p class="preview__label">Strona projektu</p>
+              <div class="preview__page" id="pv-page"></div>
+            </aside>
+          </div>
+        </section>
+
+        <section class="panel glass" id="list-panel">
+          <h2 class="panel__title">Twoje projekty</h2>
+          <p class="panel__sub" id="list-sub"></p>
+          <ul class="list" id="list"></ul>
+        </section>
+      </div>
     </div>
   </body>
 </html>
