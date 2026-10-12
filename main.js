@@ -1,19 +1,28 @@
 import { CATEGORIES, FALLBACK_PROJECTS } from "./data.js";
 import { supabaseConfigured, getProjects } from "./supabase.js";
 
-const state = {
-  projects: [],
-  category: "all",
-  query: "",
-};
+const TABS = [
+  { id: "all", label: "Wszystkie" },
+  { id: "app", label: "Aplikacje" },
+  { id: "game", label: "Gry" },
+  { id: "tool", label: "Narzędzia" },
+  { id: "site", label: "Strony" },
+];
+
+const FILTERS = [
+  { id: "reco", label: "Polecane" },
+  { id: "top", label: "Najpopularniejsze" },
+  { id: "rated", label: "Najlepiej oceniane" },
+  { id: "featured", label: "Wyróżnione" },
+];
+
+const state = { projects: [], tab: "all", filter: "reco", query: "" };
 
 const el = {
-  chips: document.getElementById("chips"),
-  featured: document.getElementById("featured"),
-  shelf: document.getElementById("shelf"),
-  grid: document.getElementById("grid"),
-  count: document.getElementById("result-count"),
-  empty: document.getElementById("empty"),
+  tabs: document.getElementById("tabs"),
+  filters: document.getElementById("filters"),
+  hero: document.getElementById("hero"),
+  shelves: document.getElementById("shelves"),
   search: document.getElementById("search"),
 };
 
@@ -23,136 +32,192 @@ const esc = (s) =>
 const catLabel = (id) => (CATEGORIES.find((c) => c.id === id) || { label: id }).label;
 
 function initials(name) {
-  const clean = String(name || "?").trim();
-  const parts = clean.split(/\s+/).filter(Boolean);
+  const parts = String(name || "?").trim().split(/\s+/).filter(Boolean);
   if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
-  return clean.slice(0, 2).toUpperCase();
+  return String(name || "?").trim().slice(0, 2).toUpperCase();
 }
 
 const fmtInstalls = (n) => {
   const v = Number(n) || 0;
-  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(v % 1_000_000 === 0 ? 0 : 1)} mln`;
-  if (v >= 1_000) return `${(v / 1_000).toFixed(v % 1_000 === 0 ? 0 : 1)} tys.`;
+  if (v >= 1_000_000) return `${(v / 1_000_000).toFixed(1).replace(".", ",")} mln`;
+  if (v >= 1_000) return `${(v / 1_000).toFixed(v % 1_000 === 0 ? 0 : 1).replace(".", ",")} tys.`;
   return String(v);
 };
 
-const STAR =
-  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 2.9 6.26 6.86.6-5.2 4.5 1.55 6.72L12 16.9 5.89 20.08 7.44 13.36 2.24 8.86l6.86-.6L12 2Z"/></svg>';
+const fmtRating = (r) => (Number(r) || 0).toFixed(1).replace(".", ",");
 
-function cardHTML(p) {
+function tileHTML(p) {
   return `
-    <article class="card" role="listitem" style="--a:${esc(p.accent || "#0fae74")}">
-      <div class="card__top">
-        <span class="tile" aria-hidden="true">${esc(initials(p.name))}</span>
-        <div class="card__id">
-          <h3 class="card__name">${esc(p.name)}</h3>
-          <p class="card__cat">${esc(catLabel(p.category))}</p>
-        </div>
-      </div>
-      <p class="card__tagline">${esc(p.tagline || p.description || "")}</p>
-      <div class="card__foot">
-        <span class="rating">${STAR}${(Number(p.rating) || 0).toFixed(1)}</span>
-        <a class="open" href="${esc(p.url || "#")}" target="_blank" rel="noopener">Otwórz</a>
-      </div>
-    </article>`;
+    <a class="tile" href="${esc(p.url || "#")}" target="_blank" rel="noopener" title="${esc(p.name)}">
+      <span class="tile__icon" style="--a:${esc(p.accent || "#01875f")}" aria-hidden="true">${esc(initials(p.name))}</span>
+      <span class="tile__name">${esc(p.name)}</span>
+      <span class="tile__meta">
+        <span class="tile__rating">
+          <span class="material-icons" aria-hidden="true" style="color:#ffce00">star</span>${fmtRating(p.rating)}
+        </span>
+        <span class="tile__dot" aria-hidden="true"></span>
+        <span>${fmtInstalls(p.installs)}</span>
+      </span>
+    </a>`;
 }
 
-function renderChips() {
-  el.chips.innerHTML = CATEGORIES.map(
-    (c) =>
-      `<button class="chip" type="button" data-cat="${esc(c.id)}" aria-pressed="${c.id === state.category}">${esc(
-        c.label
-      )}</button>`
+function renderTabs() {
+  el.tabs.innerHTML = TABS.map(
+    (t) =>
+      `<button class="tab" role="tab" data-tab="${t.id}" aria-selected="${t.id === state.tab}">${esc(t.label)}</button>`
   ).join("");
-  el.chips.querySelectorAll(".chip").forEach((btn) =>
-    btn.addEventListener("click", () => {
-      state.category = btn.dataset.cat;
-      renderChips();
+  el.tabs.querySelectorAll(".tab").forEach((b) =>
+    b.addEventListener("click", () => {
+      state.tab = b.dataset.tab;
+      renderTabs();
       render();
     })
   );
 }
 
-function filtered() {
-  const q = state.query.trim().toLowerCase();
-  return state.projects.filter((p) => {
-    if (state.category !== "all" && p.category !== state.category) return false;
-    if (!q) return true;
-    return [p.name, p.tagline, p.description, catLabel(p.category)].join(" ").toLowerCase().includes(q);
-  });
+function renderFilters() {
+  el.filters.innerHTML = FILTERS.map(
+    (f) =>
+      `<button class="chip" type="button" data-filter="${f.id}" aria-pressed="${f.id === state.filter}">${esc(f.label)}</button>`
+  ).join("");
+  el.filters.querySelectorAll(".chip").forEach((b) =>
+    b.addEventListener("click", () => {
+      state.filter = b.dataset.filter;
+      renderFilters();
+      render();
+    })
+  );
 }
 
-function renderFeatured(list) {
-  const p = list.find((x) => x.featured) || list[0];
+function byTab(list) {
+  return state.tab === "all" ? list : list.filter((p) => p.category === state.tab);
+}
+
+function byQuery(list) {
+  const q = state.query.trim().toLowerCase();
+  if (!q) return list;
+  return list.filter((p) =>
+    [p.name, p.tagline, p.description, catLabel(p.category)].join(" ").toLowerCase().includes(q)
+  );
+}
+
+function sortFor(filter, list) {
+  const arr = list.slice();
+  if (filter === "top") return arr.sort((a, b) => (Number(b.installs) || 0) - (Number(a.installs) || 0));
+  if (filter === "rated") return arr.sort((a, b) => (Number(b.rating) || 0) - (Number(a.rating) || 0));
+  return arr.sort((a, b) => (Number(b.rating) || 0) - (Number(a.rating) || 0));
+}
+
+function renderHero(pool) {
+  const p = pool.find((x) => x.featured) || pool[0];
   if (!p) {
-    el.featured.innerHTML = "";
+    el.hero.innerHTML = "";
     return;
   }
-  el.featured.innerHTML = `
-    <div class="banner" style="--a:${esc(p.accent || "#0fae74")}">
-      <div>
-        <p class="banner__eyebrow">Wyróżniony projekt</p>
-        <h2 class="banner__name">${esc(p.name)}</h2>
-        <p class="banner__tagline">${esc(p.tagline || p.description || "")}</p>
-        <div class="banner__meta">
-          <span class="rating" style="color:inherit">${STAR}${(Number(p.rating) || 0).toFixed(1)}</span>
-          <span>${fmtInstalls(p.installs)} pobrań</span>
-        </div>
+  el.hero.innerHTML = `
+    <div class="hero__card" style="--a:${esc(p.accent || "#01875f")}">
+      <p class="hero__eyebrow">Wyróżniony projekt</p>
+      <h1 class="hero__name">${esc(p.name)}</h1>
+      <p class="hero__tagline">${esc(p.tagline || p.description || "")}</p>
+      <div class="hero__row">
+        <a class="hero__cta" href="${esc(p.url || "#")}" target="_blank" rel="noopener">Otwórz</a>
+        <span class="hero__rating">
+          <span class="material-icons" aria-hidden="true">star</span>${fmtRating(p.rating)}
+          <span style="opacity:.85;color:#fff;font-weight:400"> · ${fmtInstalls(p.installs)} pobrań</span>
+        </span>
       </div>
-      <a class="banner__cta" href="${esc(p.url || "#")}" target="_blank" rel="noopener">Otwórz</a>
     </div>`;
 }
 
-function render() {
-  const list = filtered();
-
-  el.shelf.innerHTML = state.projects
-    .slice()
-    .sort((a, b) => (Number(b.rating) || 0) - (Number(a.rating) || 0))
-    .slice(0, 8)
-    .map(cardHTML)
-    .join("");
-
-  el.grid.innerHTML = list.map(cardHTML).join("");
-  el.empty.hidden = list.length !== 0;
-  el.count.textContent = `${list.length} ${list.length === 1 ? "projekt" : "projektów"}`;
+function shelfHTML(title, items, id) {
+  const body = items.length ? items.map(tileHTML).join("") : `<p class="shelf__empty">Brak projektów.</p>`;
+  const arrows = items.length
+    ? `<button class="shelf__arrow shelf__arrow--prev" type="button" aria-label="Poprzednie" data-dir="-1">
+         <span class="material-icons">chevron_left</span></button>
+       <button class="shelf__arrow shelf__arrow--next" type="button" aria-label="Następne" data-dir="1">
+         <span class="material-icons">chevron_right</span></button>`
+    : "";
+  return `
+    <section class="shelf" aria-labelledby="sh-${id}">
+      <div class="shelf__head">
+        <h2 class="shelf__title" id="sh-${id}">${esc(title)}</h2>
+      </div>
+      <div class="shelf__viewport">
+        <div class="shelf__track" data-track>${body}</div>
+        ${arrows}
+      </div>
+    </section>`;
 }
 
-function renderSkeleton() {
-  el.shelf.innerHTML = Array.from({ length: 4 }, () => '<div class="skeleton"></div>').join("");
-  el.grid.innerHTML = Array.from({ length: 8 }, () => '<div class="skeleton"></div>').join("");
+function wireArrows() {
+  el.shelves.querySelectorAll(".shelf__viewport").forEach((vp) => {
+    const track = vp.querySelector("[data-track]");
+    const prev = vp.querySelector(".shelf__arrow--prev");
+    const next = vp.querySelector(".shelf__arrow--next");
+    if (!track || !prev || !next) return;
+    const step = () => Math.max(240, Math.round(track.clientWidth * 0.85));
+    prev.addEventListener("click", () => track.scrollBy({ left: -step(), behavior: "smooth" }));
+    next.addEventListener("click", () => track.scrollBy({ left: step(), behavior: "smooth" }));
+    const update = () => {
+      const max = track.scrollWidth - track.clientWidth - 2;
+      prev.disabled = track.scrollLeft <= 2;
+      next.disabled = track.scrollLeft >= max;
+    };
+    track.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    update();
+  });
+}
+
+function render() {
+  const pool = byQuery(byTab(state.projects));
+  renderHero(pool);
+
+  const reco = sortFor("rated", pool).slice(0, 14);
+  const top = sortFor("top", pool).slice(0, 14);
+  const featuredOnly = pool.filter((p) => p.featured);
+  const all = sortFor(state.filter, pool);
+
+  const primary = state.filter === "top" ? top : state.filter === "featured" ? featuredOnly : reco;
+
+  el.shelves.innerHTML =
+    (primary.length ? shelfHTML("Polecane dla Ciebie", primary, "a") : "") +
+    (top.length ? shelfHTML("Popularne teraz", top, "b") : "") +
+    (all.length ? shelfHTML(all.length === pool.length ? "Wszystkie projekty" : `Wyniki: ${catLabel(state.tab)}`, all, "c") : "") +
+    (!pool.length ? `<p class="shelf__empty" style="padding:40px 16px;text-align:center">Nic nie znaleziono.</p>` : "");
+
+  wireArrows();
 }
 
 function initTheme() {
   const root = document.documentElement;
   const btn = document.getElementById("theme-toggle");
-  const order = ["light", "dark"];
+  const pref = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
   const stored = localStorage.getItem("uw-theme");
-  const initial =
-    stored || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-  root.setAttribute("data-theme", initial);
-  btn.addEventListener("click", () => {
-    const next = order[(order.indexOf(root.getAttribute("data-theme")) + 1) % order.length];
-    root.setAttribute("data-theme", next);
-    localStorage.setItem("uw-theme", next);
-  });
+  const set = (mode) => {
+    root.setAttribute("data-theme", mode);
+    localStorage.setItem("uw-theme", mode);
+  };
+  set(stored || pref);
+  btn.addEventListener("click", () => set(root.getAttribute("data-theme") === "dark" ? "light" : "dark"));
 }
 
 async function load() {
-  renderSkeleton();
-  let projects = [];
-  if (supabaseConfigured) {
-    try {
-      projects = await getProjects();
-    } catch (err) {
-      console.warn("Supabase:", err.message);
-    }
-  }
-  if (!projects.length) projects = FALLBACK_PROJECTS;
-  state.projects = projects;
-  renderFeatured(projects);
-  renderChips();
+  renderTabs();
+  renderFilters();
+  state.projects = FALLBACK_PROJECTS;
   render();
+
+  if (!supabaseConfigured) return;
+  try {
+    const projects = await getProjects();
+    if (projects && projects.length) {
+      state.projects = projects;
+      render();
+    }
+  } catch (err) {
+    console.warn("Supabase:", err.message);
+  }
 }
 
 el.search.addEventListener("input", (e) => {
