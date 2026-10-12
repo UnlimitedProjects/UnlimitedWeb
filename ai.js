@@ -41,3 +41,36 @@ export const aiDraft = (idea, category) => call("/ai/draft", { method: "POST", b
 export const aiResearch = (queries, concurrency = 6) =>
   call("/ai/research", { method: "POST", body: { queries, concurrency }, timeoutMs: 120000 });
 export const aiChat = (message, agent) => call("/ai/chat", { method: "POST", body: { message, agent }, timeoutMs: 240000 });
+
+export async function aiRunStream({ message, agent, model }, onEvent) {
+  if (!base) throw new Error("Most AI nieskonfigurowany (config.js).");
+  const res = await fetch(base + "/ai/run", {
+    method: "POST",
+    headers: headers(),
+    body: JSON.stringify({ message, agent, model }),
+  });
+  if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
+  const reader = res.body.getReader();
+  const dec = new TextDecoder();
+  let buf = "";
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    let i;
+    while ((i = buf.indexOf("\n\n")) >= 0) {
+      const chunk = buf.slice(0, i);
+      buf = buf.slice(i + 2);
+      for (const line of chunk.split("\n")) {
+        if (!line.startsWith("data:")) continue;
+        const json = line.slice(5).trim();
+        if (!json) continue;
+        try {
+          onEvent(JSON.parse(json));
+        } catch {
+          /* ignore */
+        }
+      }
+    }
+  }
+}

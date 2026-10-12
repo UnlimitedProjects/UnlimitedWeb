@@ -1280,3 +1280,120 @@ main {
   border-radius: var(--r);
 }
 
+/* ---------- Create With AI ---------- */
+.cwa {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 420px);
+  gap: 18px;
+}
+.cwa__chat {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.chat-log {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 190px;
+  max-height: 340px;
+  overflow: auto;
+  padding: 12px;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r);
+}
+.chat-log:empty::before {
+  content: "Zacznij rozmowę z mini-agentem…";
+  color: var(--text-3);
+  font-size: 14px;
+}
+.bubble {
+  max-width: 85%;
+  padding: 10px 14px;
+  font-size: 14px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  border-radius: 14px;
+  animation: rise 0.3s var(--ease-out) backwards;
+}
+.bubble--user {
+  align-self: flex-end;
+  color: var(--on-accent);
+  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+}
+.bubble--ai {
+  align-self: flex-start;
+  color: var(--text);
+  background: var(--glass-strong);
+  border: 1px solid var(--glass-border);
+}
+.chat-input {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.chat-input select,
+.chat-input input {
+  padding: 11px 14px;
+  font-family: var(--font);
+  font-size: 14px;
+  color: var(--text);
+  background: var(--glass-strong);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r);
+}
+.chat-input select {
+  flex: 0 0 auto;
+  max-width: 130px;
+}
+.chat-input input {
+  flex: 1;
+  min-width: 0;
+}
+.chat-input input:focus,
+.chat-input select:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.28);
+}
+.cwa__console {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.console-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+.console-head .material-icons {
+  font-size: 18px;
+}
+.console {
+  flex: 1;
+  min-height: 260px;
+  max-height: 420px;
+  margin: 0;
+  padding: 12px;
+  overflow: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #c8f7d4;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: #0b0b11;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r);
+}
+@media (max-width: 60rem) {
+  .cwa {
+    grid-template-columns: 1fr;
+  }
+}
+

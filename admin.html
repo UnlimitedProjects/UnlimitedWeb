@@ -103,6 +103,33 @@
           </div>
         </section>
 
+        <section class="panel glass" id="cwa-panel">
+          <div class="ai-head">
+            <div>
+              <h2 class="panel__title">Create With AI</h2>
+              <p class="panel__sub">Rozmawiaj z mini-agentami i patrz, co robią — na żywo.</p>
+            </div>
+          </div>
+          <div class="cwa">
+            <div class="cwa__chat">
+              <div class="chat-log" id="chat-log" role="log" aria-live="polite"></div>
+              <div class="chat-input">
+                <select id="cwa-agent" aria-label="Mini-agent"></select>
+                <input id="cwa-msg" placeholder="np. zrób projekt aplikacji do nauki słówek" />
+                <button class="btn" type="button" id="cwa-send" aria-label="Wyślij"><span class="material-icons">send</span></button>
+              </div>
+              <p class="note" id="cwa-note" role="status" aria-live="polite"></p>
+            </div>
+            <div class="cwa__console">
+              <div class="console-head">
+                <span class="material-icons">terminal</span> Konsola agentów
+                <button class="btn btn--ghost" id="cwa-clear" type="button" style="padding:4px 12px; margin-left: auto">Wyczyść</button>
+              </div>
+              <pre class="console" id="cwa-console" aria-live="polite"></pre>
+            </div>
+          </div>
+        </section>
+
         <section class="panel glass" id="builder" hidden>
           <div class="builder">
             <form class="builder__form" id="add-form">

@@ -1,6 +1,6 @@
 import { supabaseConfigured, currentUser, signIn, signOut, addProject, getProjects } from "./supabase.js";
 import { localProjects, saveLocalProject, removeLocalProject, toProject } from "./store.js";
-import { aiConfigured, aiHealth, aiAgents, aiDraft, aiResearch, aiChat } from "./ai.js";
+import { aiConfigured, aiHealth, aiAgents, aiDraft, aiResearch, aiChat, aiRunStream } from "./ai.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -221,7 +221,10 @@ async function initAi() {
   try {
     const { agents } = await aiAgents();
     const list = agents || [];
-    $("ai-agent").innerHTML = list.map((a) => `<option value="${esc(a.name)}">${esc(a.name)}</option>`).join("");
+    const options = list.map((a) => `<option value="${esc(a.name)}">${esc(a.name)}</option>`).join("");
+    $("ai-agent").innerHTML = options;
+    const cwa = $("cwa-agent");
+    if (cwa) cwa.innerHTML = options;
     $("ai-agents").innerHTML = list
       .map((a) => `<span class="agent-chip" title="${esc(a.description)}">${esc(a.name)}</span>`)
       .join("");
@@ -308,6 +311,72 @@ async function init() {
     } catch (err) {
       pre.textContent = "Błąd: " + err.message;
     }
+  });
+
+  // Create With AI — chat + konsola na żywo
+  const chatLog = $("chat-log");
+  const consoleEl = $("cwa-console");
+  const cwaMsg = $("cwa-msg");
+  const cwaSend = $("cwa-send");
+
+  const consoleLine = (text) => {
+    const t = new Date().toLocaleTimeString("pl-PL");
+    consoleEl.textContent += `[${t}] ${text}\n`;
+    consoleEl.scrollTop = consoleEl.scrollHeight;
+  };
+  const bubble = (role, text) => {
+    const div = document.createElement("div");
+    div.className = `bubble bubble--${role}`;
+    div.textContent = text;
+    chatLog.appendChild(div);
+    chatLog.scrollTop = chatLog.scrollHeight;
+    return div;
+  };
+
+  async function sendCwa() {
+    const message = cwaMsg.value.trim();
+    if (!message) return;
+    const agent = $("cwa-agent").value || "worker";
+    cwaSend.disabled = true;
+    setNote($("cwa-note"), "", "");
+    bubble("user", message);
+    cwaMsg.value = "";
+    consoleLine(`▶ ${agent}: ${message.slice(0, 120)}`);
+    let asst = null;
+    try {
+      await aiRunStream({ message, agent }, (ev) => {
+        if (ev.type === "assistant") {
+          if (!asst) asst = bubble("ai", "");
+          asst.textContent += ev.text;
+          chatLog.scrollTop = chatLog.scrollHeight;
+        } else if (ev.type === "tool") {
+          consoleLine(`🔧 ${ev.name} ${ev.input ? JSON.stringify(ev.input).slice(0, 160) : ""}`);
+        } else if (ev.type === "log") {
+          consoleLine(ev.text);
+        } else if (ev.type === "error") {
+          consoleLine("✖ " + ev.text);
+          setNote($("cwa-note"), "error", ev.text);
+        } else if (ev.type === "done") {
+          consoleLine("■ zakończono");
+        }
+      });
+    } catch (err) {
+      consoleLine("✖ " + err.message);
+      setNote($("cwa-note"), "error", err.message);
+    } finally {
+      cwaSend.disabled = false;
+    }
+  }
+
+  cwaSend.addEventListener("click", sendCwa);
+  cwaMsg.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      sendCwa();
+    }
+  });
+  $("cwa-clear").addEventListener("click", () => {
+    consoleEl.textContent = "";
   });
 
   if (!supabaseConfigured) {
