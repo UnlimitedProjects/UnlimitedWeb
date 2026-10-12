@@ -25,18 +25,28 @@ function writeCache(key, data) {
   }
 }
 
+export function avatarUrl(owner, size = 160) {
+  return owner ? `https://github.com/${owner}.png?size=${size}` : null;
+}
+
 export function mapRepo(r) {
+  const owner = r.owner && r.owner.login ? r.owner.login : "";
   return {
     id: r.full_name,
     slug: r.full_name,
     name: r.name,
-    owner: r.owner && r.owner.login ? r.owner.login : "",
+    owner,
+    avatar: avatarUrl(owner),
     tagline: r.description || "Brak opisu.",
     description: r.description || "",
     url: r.html_url,
     stars: r.stargazers_count || 0,
+    forks: r.forks_count || 0,
+    issues: r.open_issues_count || 0,
     language: r.language || null,
     accent: accentFor(r.language),
+    homepage: r.homepage || null,
+    topics: r.topics || [],
     source: "github",
   };
 }
@@ -47,12 +57,17 @@ export function mapCurated(c) {
     slug: `${c.owner}/${c.name}`,
     name: c.name,
     owner: c.owner,
+    avatar: avatarUrl(c.owner),
     tagline: c.description,
     description: c.description,
     url: c.url,
     stars: c.stars,
+    forks: 0,
+    issues: 0,
     language: c.language || null,
     accent: accentFor(c.language),
+    homepage: null,
+    topics: [],
     source: "github",
   };
 }
@@ -96,4 +111,25 @@ export async function projectOfTheDay() {
   const pick = pool[dayIndex() % pool.length];
   writeCache(key, pick);
   return pick;
+}
+
+export async function getRepo(fullName) {
+  if (!fullName) return null;
+  const key = `uw:gh:repo:${fullName}`;
+  const cached = readCache(key);
+  if (cached) return cached;
+  try {
+    const res = await fetch(`${API}/repos/${fullName}`, {
+      headers: { Accept: "application/vnd.github+json" },
+    });
+    if (res.ok) {
+      const mapped = mapRepo(await res.json());
+      writeCache(key, mapped);
+      return mapped;
+    }
+  } catch {
+    /* offline */
+  }
+  const cur = CURATED.find((c) => `${c.owner}/${c.name}` === fullName);
+  return cur ? mapCurated(cur) : null;
 }

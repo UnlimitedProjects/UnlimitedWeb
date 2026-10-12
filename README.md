@@ -6,13 +6,20 @@ Hub w stylu sklepu z aplikacjami, w stylu **liquid glass** z animacjami. Dane to
 
 - `index.html` — hub (top bar, taby języków, chipsy, Projekt dnia, półki)
 - `styles.css` — liquid glass + układ Play + animacje (aurora, tilt, wejścia)
-- `main.js` — render, filtrowanie, Projekt dnia, tilt
-- `github.js` — GitHub API (top repo, Projekt dnia ≥100k ★) + cache + fallback
+- `main.js` — render, filtrowanie, Projekt dnia
+- `project.html` / `project.js` — strona projektu (opis, statystyki, oceny i recenzje)
+- `reviews.js` — oceny/recenzje (Supabase + fallback localStorage)
+- `github.js` — GitHub API (top repo, Projekt dnia ≥100k ★, szczegóły repo, awatary jako ikony) + cache + fallback
 - `data.js` — języki/kolory, filtry gwiazdek, kuratorowany fallback (≥100k ★)
 - `supabase.js` — projekty z bazy + auth (login) + `addProject`
 - `store.js` — projekty dodane lokalnie (gdy brak bazy)
 - `admin.html` / `admin.js` — panel: logowanie + dodawanie projektu
 - `.github/workflows/` — Pages + Releases
+
+## Strona projektu
+
+Klik w kafelek → `project.html?id=owner/name` (płynne przejście przez **View Transitions API**).
+Pokazuje ikonę (avatar GitHuba), opis, gwiazdki, język oraz **oceny i recenzje** (formularz + lista + rozkład ocen).
 
 ## Projekt GitHub dnia
 

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="view-transition" content="same-origin" />
+    <title>Projekt — UnlimitedWeb</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="module" src="./project.js"></script>
+  </head>
+  <body>
+    <div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+
+    <header class="appbar">
+      <div class="appbar__bar">
+        <a class="logo" href="./index.html" aria-label="Wróć do huba">
+          <svg class="logo__svg" viewBox="0 0 40 40" aria-hidden="true">
+            <path d="M6 3.5 30.5 20 6 36.5Z" fill="#01875f" />
+            <path d="M30.5 20 36.6 16.6c1.1.6 1.1 2.2 0 2.8Z" fill="#ffce00" />
+          </svg>
+          <span class="logo__name">UnlimitedWeb</span>
+        </a>
+        <div class="appbar__actions">
+          <a class="gicon" href="./index.html" aria-label="Wróć" title="Wróć"><span class="material-icons" aria-hidden="true">arrow_back</span></a>
+          <button class="gicon" id="theme-toggle" type="button" aria-label="Zmień motyw"><span class="material-icons" aria-hidden="true">brightness_6</span></button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="wrap">
+        <section id="project-head" aria-label="Szczegóły projektu"></section>
+
+        <section class="panel glass" aria-label="Oceny i recenzje">
+          <div class="rating-summary" id="rating-summary"></div>
+
+          <form id="review-form" class="review-form">
+            <h3 class="review-form__title">Dodaj ocenę</h3>
+            <div class="stars" id="stars" role="radiogroup" aria-label="Ocena">
+              <button type="button" class="star" data-v="1" role="radio" aria-checked="false" aria-label="1 gwiazdka"><span class="material-icons">star</span></button>
+              <button type="button" class="star" data-v="2" role="radio" aria-checked="false" aria-label="2 gwiazdki"><span class="material-icons">star</span></button>
+              <button type="button" class="star" data-v="3" role="radio" aria-checked="false" aria-label="3 gwiazdki"><span class="material-icons">star</span></button>
+              <button type="button" class="star" data-v="4" role="radio" aria-checked="false" aria-label="4 gwiazdki"><span class="material-icons">star</span></button>
+              <button type="button" class="star" data-v="5" role="radio" aria-checked="false" aria-label="5 gwiazdek"><span class="material-icons">star</span></button>
+            </div>
+            <div class="row2">
+              <div class="field">
+                <label for="author">Nick (opcjonalnie)</label>
+                <input id="author" name="author" maxlength="40" autocomplete="nickname" />
+              </div>
+            </div>
+            <div class="field">
+              <label for="comment">Recenzja</label>
+              <textarea id="comment" name="comment" maxlength="600" placeholder="Co sądzisz o tym projekcie?"></textarea>
+            </div>
+            <button class="btn" type="submit" id="review-btn"><span class="material-icons">send</span> Opublikuj</button>
+            <p class="note" id="review-note" role="status" aria-live="polite"></p>
+          </form>
+
+          <ul class="reviews" id="reviews"></ul>
+        </section>
+      </div>
+    </main>
+  </body>
+</html>

@@ -19,7 +19,6 @@ const el = {
   hero: document.getElementById("hero"),
   shelves: document.getElementById("shelves"),
   search: document.getElementById("search"),
-  podReroll: document.getElementById("pod-reroll"),
 };
 
 const esc = (s) =>
@@ -64,9 +63,14 @@ function matches(p) {
 }
 
 function tileHTML(p, i) {
+  const avatar = p.avatar || (p.owner ? `https://github.com/${p.owner}.png?size=160` : null);
+  const href = `./project.html?id=${encodeURIComponent(p.slug || p.id)}`;
   return `
-    <a class="tile glass" href="${esc(p.url)}" target="_blank" rel="noopener" style="--a:${esc(p.accent)};--i:${i}" data-tile title="${esc(p.owner ? p.owner + "/" + p.name : p.name)}">
-      <span class="tile__icon" aria-hidden="true">${esc(initials(p))}</span>
+    <a class="tile glass" href="${href}" style="--a:${esc(p.accent)};--i:${i}" data-tile title="${esc(p.owner ? p.owner + "/" + p.name : p.name)}">
+      <span class="tile__icon">
+        <span class="tile__initials">${esc(initials(p))}</span>
+        ${avatar ? `<img class="tile__img" src="${esc(avatar)}" alt="" loading="lazy" onerror="this.remove()" />` : ""}
+      </span>
       <span class="tile__name">${esc(p.name)}</span>
       <span class="tile__meta">
         <span class="tile__rating"><span class="material-icons" aria-hidden="true">star</span>${fmtStars(p.stars)}</span>
@@ -123,6 +127,7 @@ function renderHero() {
     el.hero.innerHTML = "";
     return;
   }
+  const href = `./project.html?id=${encodeURIComponent(p.slug || p.id)}`;
   el.hero.innerHTML = `
     <div class="hero glass" style="--a:${esc(p.accent)}">
       <div class="hero__glow" aria-hidden="true"></div>
@@ -131,24 +136,12 @@ function renderHero() {
         <h1 class="hero__name">${esc(p.owner ? p.owner + "/" : "")}<b>${esc(p.name)}</b></h1>
         <p class="hero__tagline">${esc(p.tagline)}</p>
         <div class="hero__row">
-          <a class="hero__cta" href="${esc(p.url)}" target="_blank" rel="noopener">Otwórz na GitHubie</a>
-          <button class="hero__reroll glass" type="button" id="pod-reroll"><span class="material-icons">casino</span> Losuj inne</button>
+          <a class="hero__cta" href="${href}">Zobacz projekt</a>
+          <a class="hero__reroll glass" href="${esc(p.url)}" target="_blank" rel="noopener"><span class="material-icons">open_in_new</span> GitHub</a>
           <span class="hero__stat"><span class="material-icons" aria-hidden="true">star</span>${fmtStars(p.stars)}${p.language ? ` · ${esc(p.language)}` : ""}</span>
         </div>
       </div>
     </div>`;
-  const btn = document.getElementById("pod-reroll");
-  if (btn) btn.addEventListener("click", reroll);
-}
-
-function reroll() {
-  const pool = state.github.filter((p) => p.stars >= MIN_STARS_FEATURED);
-  const src = pool.length ? pool : CURATED.filter((c) => c.stars >= MIN_STARS_FEATURED).map(mapCurated);
-  if (!src.length) return;
-  let pick = state.pod;
-  for (let i = 0; i < 8 && pick === state.pod; i++) pick = src[Math.floor(Math.random() * src.length)];
-  state.pod = pick;
-  renderHero();
 }
 
 function render() {
